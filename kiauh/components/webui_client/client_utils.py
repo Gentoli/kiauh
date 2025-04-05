@@ -359,21 +359,26 @@ def get_nginx_listen_port(config: Path) -> int | None:
     # noinspection HttpUrlsUsage
     pattern = r"default_server|http://|https://|[;\[\]]"
     port = ""
-    with open(config, "r") as cfg:
-        for line in cfg.readlines():
-            line = re.sub(pattern, "", line.strip())
-            if line.startswith("listen"):
-                if ":" not in line:
-                    port = line.split()[-1]
-                else:
-                    port = line.split(":")[-1]
-        try:
-            return int(port)
-        except ValueError:
-            Logger.print_error(
-                f"Unable to parse listen port {port} from {config.name}!"
-            )
-            return None
+    try:
+        cfg = open(config, "r")
+    except FileNotFoundError:
+        return None
+    else:
+        with cfg:
+            for line in cfg.readlines():
+                line = re.sub(pattern, "", line.strip())
+                if line.startswith("listen"):
+                    if ":" not in line:
+                        port = line.split()[-1]
+                    else:
+                        port = line.split(":")[-1]
+            try:
+                return int(port)
+            except ValueError:
+                Logger.print_error(
+                    f"Unable to parse listen port {port} from {config.name}!"
+                )
+                return None
 
 
 def read_ports_from_nginx_configs() -> List[int]:
